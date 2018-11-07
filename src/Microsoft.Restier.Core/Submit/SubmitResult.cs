@@ -11,6 +11,7 @@ namespace Microsoft.Restier.Core.Submit
     public class SubmitResult
     {
         private Exception exception;
+        private object exceptionItem;
         private ChangeSet completedChangeSet;
 
         /// <summary>
@@ -23,6 +24,21 @@ namespace Microsoft.Restier.Core.Submit
         {
             Ensure.NotNull(exception, "exception");
             this.Exception = exception;
+        }
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="SubmitResult" /> class with an error.
+        /// </summary>
+        /// <param name="exception">
+        /// An error.
+        /// </param>
+        /// <param name="item">related item for error</param>
+        public SubmitResult(Exception exception, object item)
+        {
+            Ensure.NotNull(exception, "exception");
+            Ensure.NotNull(item, "item");
+            this.Exception = exception;
+            this.ExceptionItem = item;
         }
 
         /// <summary>
@@ -56,6 +72,17 @@ namespace Microsoft.Restier.Core.Submit
                 Ensure.NotNull(value, "value");
                 this.exception = value;
                 this.completedChangeSet = null;
+            }
+        }
+
+        public object ExceptionItem
+        {
+            get => this.exceptionItem;
+
+            set
+            {
+                Ensure.NotNull(value, "value");
+                this.exceptionItem = value;
             }
         }
 

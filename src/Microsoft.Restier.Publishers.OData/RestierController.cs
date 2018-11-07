@@ -12,6 +12,7 @@ using System.Net.Http.Headers;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Web.Http;
+using System.Web.Http.Results;
 using Microsoft.AspNet.OData;
 using Microsoft.AspNet.OData.Extensions;
 using Microsoft.AspNet.OData.Formatter;
@@ -391,6 +392,11 @@ namespace Microsoft.Restier.Publishers.OData
                 changeSet.Entries.Add(updateItem);
 
                 SubmitResult result = await Api.SubmitAsync(changeSet, cancellationToken);
+
+                if (result?.Exception is PreconditionFailedException && result.ExceptionItem != null)
+                {
+                    return CreateConflictODataResult(result.ExceptionItem);
+                }
             }
             else
             {
@@ -398,7 +404,6 @@ namespace Microsoft.Restier.Publishers.OData
 
                 await changeSetProperty.OnChangeSetCompleted(this.Request);
             }
-
             return this.CreateUpdatedODataResult(updateItem.Resource);
         }
 
@@ -671,6 +676,11 @@ namespace Microsoft.Restier.Publishers.OData
             }
 
             return originalValues;
+        }
+
+        private IHttpActionResult CreateConflictODataResult(object entity)
+        {
+            return this.CreateResult(typeof(ConflictedODataResult<>), entity);
         }
 
         private IHttpActionResult CreateCreatedODataResult(object entity)
