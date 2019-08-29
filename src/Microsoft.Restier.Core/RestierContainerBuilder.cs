@@ -4,11 +4,11 @@
 using System;
 using System.Globalization;
 using System.Reflection;
-using System.Threading;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.OData;
 using Microsoft.OData.Edm;
-using ServiceLifetime = Microsoft.OData.ServiceLifetime;
+using DIServiceLifetime = Microsoft.Extensions.DependencyInjection.ServiceLifetime;
+using ODataServiceLifetime = Microsoft.OData.ServiceLifetime;
 
 namespace Microsoft.Restier.Core
 {
@@ -18,16 +18,13 @@ namespace Microsoft.Restier.Core
     public class RestierContainerBuilder : IContainerBuilder
     {
         private readonly IServiceCollection services = new ServiceCollection();
-        private Type apiType;
+        private readonly Type apiType;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="RestierContainerBuilder" /> class.
         /// </summary>
         /// <param name="apiType">The Api Type</param>
-        public RestierContainerBuilder(Type apiType)
-        {
-            this.apiType = apiType;
-        }
+        public RestierContainerBuilder(Type apiType) => this.apiType = apiType;
 
         /// <summary>
         /// Adds a service of <paramref name="serviceType"/> with an <paramref name="implementationType"/>.
@@ -36,25 +33,19 @@ namespace Microsoft.Restier.Core
         /// <param name="serviceType">The type of the service to register.</param>
         /// <param name="implementationType">The implementation type of the service.</param>
         /// <returns>The <see cref="IContainerBuilder"/> instance itself.</returns>
-        public virtual IContainerBuilder AddService(
-            ServiceLifetime lifetime,
-            Type serviceType,
-            Type implementationType)
+        public virtual IContainerBuilder AddService(ODataServiceLifetime lifetime, Type serviceType, Type implementationType)
         {
             if (serviceType == null)
             {
-                throw new ArgumentException(string.Format(
-                        CultureInfo.InvariantCulture, Resources.ArgumentCanNotBeNull, "serviceType"));
+                throw new ArgumentException(string.Format(CultureInfo.InvariantCulture, Resources.ArgumentCanNotBeNull, "serviceType"));
             }
 
             if (implementationType == null)
             {
-                throw new ArgumentException(string.Format(
-                        CultureInfo.InvariantCulture, Resources.ArgumentCanNotBeNull, "implementationType"));
+                throw new ArgumentException(string.Format(CultureInfo.InvariantCulture, Resources.ArgumentCanNotBeNull, "implementationType"));
             }
 
-            services.Add(new ServiceDescriptor(
-                serviceType, implementationType, TranslateServiceLifetime(lifetime)));
+            services.Add(new ServiceDescriptor(serviceType, implementationType, TranslateServiceLifetime(lifetime)));
 
             return this;
         }
@@ -66,25 +57,19 @@ namespace Microsoft.Restier.Core
         /// <param name="serviceType">The type of the service to register.</param>
         /// <param name="implementationFactory">The factory that creates the service.</param>
         /// <returns>The <see cref="IContainerBuilder"/> instance itself.</returns>
-        public IContainerBuilder AddService(
-            ServiceLifetime lifetime,
-            Type serviceType,
-            Func<IServiceProvider, object> implementationFactory)
+        public IContainerBuilder AddService(ODataServiceLifetime lifetime, Type serviceType, Func<IServiceProvider, object> implementationFactory)
         {
             if (serviceType == null)
             {
-                throw new ArgumentException(string.Format(
-                        CultureInfo.InvariantCulture, Resources.ArgumentCanNotBeNull, "serviceType"));
+                throw new ArgumentException(string.Format(CultureInfo.InvariantCulture, Resources.ArgumentCanNotBeNull, "serviceType"));
             }
 
             if (implementationFactory == null)
             {
-                throw new ArgumentException(string.Format(
-                        CultureInfo.InvariantCulture, Resources.ArgumentCanNotBeNull, "implementationFactory"));
+                throw new ArgumentException(string.Format(CultureInfo.InvariantCulture, Resources.ArgumentCanNotBeNull, "implementationFactory"));
             }
 
-            services.Add(new ServiceDescriptor(
-                serviceType, implementationFactory, TranslateServiceLifetime(lifetime)));
+            services.Add(new ServiceDescriptor(serviceType, implementationFactory, TranslateServiceLifetime(lifetime)));
 
             return this;
         }
@@ -102,12 +87,12 @@ namespace Microsoft.Restier.Core
 
         internal IContainerBuilder AddRestierService()
         {
-            Func<IServiceProvider, IEdmModel> modelFactory = sp =>
+            IEdmModel modelFactory(IServiceProvider sp)
             {
                 var api = sp.GetService<ApiBase>();
-                var model = api.GetModelAsync(default(CancellationToken)).Result;
+                var model = api.GetModelAsync(default).GetAwaiter().GetResult();
                 return model;
-            };
+            }
 
             // Configure the API via reflection call
             var methodDeclaredType = apiType;
@@ -120,28 +105,30 @@ namespace Microsoft.Restier.Core
                 methodDeclaredType = methodDeclaredType.BaseType;
             }
 
-            var parameters = new object[]
+            method.Invoke(null, new object[]
             {
                 apiType, services
-            };
-
-            method.Invoke(null, parameters);
+            });
 
             services.AddSingleton(modelFactory);
             return this;
         }
 
-        private static Microsoft.Extensions.DependencyInjection.ServiceLifetime TranslateServiceLifetime(
-            ServiceLifetime lifetime)
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="lifetime"></param>
+        /// <returns></returns>
+        private static DIServiceLifetime TranslateServiceLifetime(ODataServiceLifetime lifetime)
         {
             switch (lifetime)
             {
-                case ServiceLifetime.Scoped:
-                    return Microsoft.Extensions.DependencyInjection.ServiceLifetime.Scoped;
-                case ServiceLifetime.Singleton:
-                    return Microsoft.Extensions.DependencyInjection.ServiceLifetime.Singleton;
+                case ODataServiceLifetime.Scoped:
+                    return DIServiceLifetime.Scoped;
+                case ODataServiceLifetime.Singleton:
+                    return DIServiceLifetime.Singleton;
                 default:
-                    return Microsoft.Extensions.DependencyInjection.ServiceLifetime.Transient;
+                    return DIServiceLifetime.Transient;
             }
         }
     }

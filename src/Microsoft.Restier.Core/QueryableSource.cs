@@ -12,32 +12,20 @@ namespace Microsoft.Restier.Core
 {
     internal abstract class QueryableSource : IOrderedQueryable, IQueryProvider
     {
-        public QueryableSource(Expression expression)
-        {
-            this.Expression = expression;
-        }
+        public QueryableSource(Expression expression) => Expression = expression;
 
         public abstract Type ElementType { get; }
 
         public Expression Expression { get; private set; }
 
-        IQueryProvider IQueryable.Provider
-        {
-            get
-            {
-                return this;
-            }
-        }
+        IQueryProvider IQueryable.Provider => this;
 
-        public override string ToString()
-        {
-            return this.Expression.ToString();
-        }
+        public override string ToString() => Expression.ToString();
 
         IQueryable<TElement> IQueryProvider.CreateQuery<TElement>(
             Expression expression)
         {
-            Ensure.NotNull(expression, "expression");
+            Ensure.NotNull(expression, nameof(expression));
             if (!typeof(IQueryable<TElement>).IsAssignableFrom(expression.Type))
             {
                 throw new ArgumentException(Resources.ExpressionMustBeQueryable);
@@ -48,7 +36,7 @@ namespace Microsoft.Restier.Core
 
         IQueryable IQueryProvider.CreateQuery(Expression expression)
         {
-            Ensure.NotNull(expression, "expression");
+            Ensure.NotNull(expression, nameof(expression));
             var type = expression.Type.FindGenericType(typeof(IQueryable<>));
             if (type == null)
             {
@@ -65,20 +53,11 @@ namespace Microsoft.Restier.Core
                 null) as IQueryable;
         }
 
-        TResult IQueryProvider.Execute<TResult>(Expression expression)
-        {
-            throw new NotSupportedException(Resources.CallQueryableSourceMethodNotSupported);
-        }
+        TResult IQueryProvider.Execute<TResult>(Expression expression) => throw new NotSupportedException(Resources.CallQueryableSourceMethodNotSupported);
 
-        object IQueryProvider.Execute(Expression expression)
-        {
-            throw new NotSupportedException(Resources.CallQueryableSourceMethodNotSupported);
-        }
+        object IQueryProvider.Execute(Expression expression) => throw new NotSupportedException(Resources.CallQueryableSourceMethodNotSupported);
 
-        IEnumerator IEnumerable.GetEnumerator()
-        {
-            throw new NotSupportedException(Resources.CallQueryableSourceMethodNotSupported);
-        }
+        IEnumerator IEnumerable.GetEnumerator() => throw new NotSupportedException(Resources.CallQueryableSourceMethodNotSupported);
     }
 
     internal class QueryableSource<T> : QueryableSource, IOrderedQueryable<T>
@@ -88,17 +67,8 @@ namespace Microsoft.Restier.Core
         {
         }
 
-        public override Type ElementType
-        {
-            get
-            {
-                return typeof(T);
-            }
-        }
+        public override Type ElementType => typeof(T);
 
-        IEnumerator<T> IEnumerable<T>.GetEnumerator()
-        {
-            throw new NotSupportedException(Resources.CallQueryableSourceMethodNotSupported);
-        }
+        IEnumerator<T> IEnumerable<T>.GetEnumerator() => throw new NotSupportedException(Resources.CallQueryableSourceMethodNotSupported);
     }
 }

@@ -14,12 +14,6 @@ namespace Microsoft.Restier.Core.Operation
     /// </summary>
     public class OperationContext : InvocationContext
     {
-        private readonly string operationName;
-        private readonly object implementInstance;
-        private readonly Func<string, object> getParameterValueFunc;
-        private readonly bool isFunction;
-        private readonly IEnumerable bindingParameterValue;
-        private ICollection<object> parameterValues;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="OperationContext" /> class.
@@ -51,90 +45,51 @@ namespace Microsoft.Restier.Core.Operation
             IServiceProvider provider)
             : base(provider)
         {
-            this.getParameterValueFunc = getParameterValueFunc;
-            this.operationName = operationName;
-            this.implementInstance = implementInstance;
-            this.isFunction = isFunction;
-            this.bindingParameterValue = bindingParameterValue;
+            GetParameterValueFunc = getParameterValueFunc;
+            OperationName = operationName;
+            ImplementInstance = implementInstance;
+            IsFunction = isFunction;
+            BindingParameterValue = bindingParameterValue;
         }
 
         /// <summary>
         /// Gets the operation name.
         /// </summary>
-        public string OperationName
-        {
-            get
-            {
-                return this.operationName;
-            }
-        }
+        public string OperationName { get; }
 
         /// <summary>
         /// Gets the instance have implemented the operation and used for reflection call.
         /// </summary>
-        public object ImplementInstance
-        {
-            get
-            {
-                return this.implementInstance;
-            }
-        }
+        public object ImplementInstance { get; }
 
         /// <summary>
         /// Gets the function that used to retrieve the parameter value name.
         /// </summary>
-        public Func<string, object> GetParameterValueFunc
-        {
-            get
-            {
-                return this.getParameterValueFunc;
-            }
-        }
+        public Func<string, object> GetParameterValueFunc { get; }
 
         /// <summary>
         /// Gets a value indicating whether it is a function call or action call.
         /// </summary>
-        public bool IsFunction
-        {
-            get
-            {
-                return this.isFunction;
-            }
-        }
+        public bool IsFunction { get; }
 
         /// <summary>
         /// Gets the queryable for binding parameter value,
         /// and if it is function/action import, the value will be null.
         /// </summary>
-        public IEnumerable BindingParameterValue
-        {
-            get
-            {
-                return this.bindingParameterValue;
-            }
-        }
+        public IEnumerable BindingParameterValue { get; }
+
 
         /// <summary>
         /// Gets or sets the parameters value array used by method,
         /// It is only set after parameters are prepared.
         /// </summary>
-        public ICollection<object> ParameterValues
-        {
-            get
-            {
-                return this.parameterValues;
-            }
-
-            set
-            {
-                this.parameterValues = value;
-            }
-        }
+#pragma warning disable CA2227 // Collection properties should be read only
+        public ICollection<object> ParameterValues { get; set; }
+#pragma warning restore CA2227 // Collection properties should be read only
 
         /// <summary>
         /// Gets or sets the http request for this operation call
-        /// TODO consider moving to base class after more investigation
         /// </summary>
-        public HttpRequestMessage Request { get; set; }
+        public HttpRequestMessage Request { get; set; } // TODO: RWM: Move to ApiBase.
     }
 }

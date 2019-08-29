@@ -3,6 +3,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Linq.Expressions;
 using Microsoft.Extensions.DependencyInjection;
@@ -18,23 +19,17 @@ namespace Microsoft.Restier.Core
     {
         private Type targetType;
 
-        private ConventionBasedQueryExpressionProcessor(Type targetType)
-        {
-            this.targetType = targetType;
-        }
+        private ConventionBasedQueryExpressionProcessor(Type targetType) => this.targetType = targetType;
 
         // Inner should be null unless user add one as inner most
         public IQueryExpressionProcessor Inner { get; set; }
 
         /// <inheritdoc/>
-        public static void ApplyTo(
-            IServiceCollection services,
-            Type targetType)
+        public static void ApplyTo(IServiceCollection services, Type targetType)
         {
-            Ensure.NotNull(services, "services");
-            Ensure.NotNull(targetType, "targetType");
-            services.AddService<IQueryExpressionProcessor>(
-                (sp, next) => new ConventionBasedQueryExpressionProcessor(targetType)
+            Ensure.NotNull(services, nameof(services));
+            Ensure.NotNull(targetType, nameof(targetType));
+            services.AddService<IQueryExpressionProcessor>((sp, next) => new ConventionBasedQueryExpressionProcessor(targetType)
             {
                 Inner = next,
             });
@@ -43,7 +38,7 @@ namespace Microsoft.Restier.Core
         /// <inheritdoc/>
         public Expression Process(QueryExpressionContext context)
         {
-            Ensure.NotNull(context, "context");
+            Ensure.NotNull(context, nameof(context));
 
             if (Inner != null)
             {
@@ -54,44 +49,37 @@ namespace Microsoft.Restier.Core
                 }
             }
 
-            var dataSourceStubReference = context.ModelReference as DataSourceStubModelReference;
-            if (dataSourceStubReference != null)
+            if (context.ModelReference is DataSourceStubModelReference dataSourceStubReference)
             {
-                var entitySet = dataSourceStubReference.Element as IEdmEntitySet;
-                if (entitySet == null)
+                if (!(dataSourceStubReference.Element is IEdmEntitySet entitySet))
                 {
                     return null;
                 }
 
-                var collectionType = entitySet.Type as IEdmCollectionType;
-                if (collectionType == null)
+                if (!(entitySet.Type is IEdmCollectionType collectionType))
                 {
                     return null;
                 }
 
-                var entityType = collectionType.ElementType.Definition as IEdmEntityType;
-                if (entityType == null)
+                if (!(collectionType.ElementType.Definition is IEdmEntityType entityType))
                 {
                     return null;
                 }
 
-                return AppendOnFilterExpression(context, entityType.Name);
+                return AppendOnFilterExpression(context, entitySet, entityType);
             }
 
-            var propertyModelReference = context.ModelReference as PropertyModelReference;
-            if (propertyModelReference != null && propertyModelReference.Property != null)
+            if (context.ModelReference is PropertyModelReference propertyModelReference && propertyModelReference.Property != null)
             {
                 // Could be a single navigation property or a collection navigation property
                 var propType = propertyModelReference.Property.Type;
-                var collectionTypeReference = propType as IEdmCollectionTypeReference;
-                if (collectionTypeReference != null)
+                if (propType is IEdmCollectionTypeReference collectionTypeReference)
                 {
                     var collectionType = collectionTypeReference.Definition as IEdmCollectionType;
                     propType = collectionType.ElementType;
                 }
 
-                var entityType = propType.Definition as IEdmEntityType;
-                if (entityType == null)
+                if (!(propType.Definition is IEdmEntityType entityType))
                 {
                     return null;
                 }
@@ -102,34 +90,52 @@ namespace Microsoft.Restier.Core
                     entityType = (IEdmEntityType)entityType.BaseType;
                 }
 
-                return AppendOnFilterExpression(context, entityType.Name);
+                //Get the model, query it for the entity set of a given type.
+                var entitySet = context.QueryContext.Model.EntityContainer.EntitySets().FirstOrDefault(c => c.EntityType() == entityType);
+                if (entitySet == null)
+                {
+                    return null;
+                }
+
+                return AppendOnFilterExpression(context, entitySet, entityType);
             }
 
             return null;
         }
 
-        private Expression AppendOnFilterExpression(QueryExpressionContext context, string entityTypeName)
+        private Expression AppendOnFilterExpression(QueryExpressionContext context, IEdmEntitySet entitySet, IEdmEntityType entityType)
         {
-            var methodName = ConventionBasedChangeSetConstants.FilterMethodEntitySetFilter + entityTypeName;
-            var method = this.targetType.GetQualifiedMethod(methodName);
-            if (method == null || !method.IsFamily)
+            var expectedMethodName = ConventionBasedMethodNameFactory.GetEntitySetMethodName(entitySet, RestierPipelineState.Submit, RestierEntitySetOperation.Filter);
+            var expectedMethod = targetType.GetQualifiedMethod(expectedMethodName);
+            if (expectedMethod == null || (!expectedMethod.IsFamily && !expectedMethod.IsFamilyOrAssembly))
             {
+                if (expectedMethod != null)
+                {
+                    Debug.WriteLine($"Restier Filter found '{expectedMethodName}' but it is unaccessible due to its protection level. Change it to be 'protected internal'.");
+                }
+                else
+                {
+                    var actualMethodName = expectedMethodName.Replace(entitySet.Name, entityType.Name);
+                    var actualMethod = targetType.GetQualifiedMethod(actualMethodName);
+                    if (actualMethod != null)
+                    {
+                        Debug.WriteLine($"BREAKING: Restier Filter expected'{expectedMethodName}' but found '{actualMethodName}'. Please correct the method name.");
+                    }
+                }
                 return null;
             }
 
-            var parameter = method.GetParameters().SingleOrDefault();
-            if (parameter == null ||
-                parameter.ParameterType != method.ReturnType)
+            var parameter = expectedMethod.GetParameters().SingleOrDefault();
+            if (parameter == null || parameter.ParameterType != expectedMethod.ReturnType)
             {
                 return null;
             }
 
             object apiBase = null;
-            if (!method.IsStatic)
+            if (!expectedMethod.IsStatic)
             {
                 apiBase = context.QueryContext.GetApiService<ApiBase>();
-                if (apiBase == null ||
-                    !this.targetType.IsInstanceOfType(apiBase))
+                if (apiBase == null || !targetType.IsInstanceOfType(apiBase))
                 {
                     return null;
                 }
@@ -155,9 +161,7 @@ namespace Microsoft.Restier.Core
                 elementType = collectionType.GetGenericArguments()[0];
                 returnType = typeof(IQueryable<>).MakeGenericType(elementType);
 
-                enumerableQueryParameter = Expression.Call(
-                    ExpressionHelperMethods.QueryableAsQueryableGeneric.MakeGenericMethod(elementType),
-                    context.VisitedNode);
+                enumerableQueryParameter = Expression.Call(ExpressionHelperMethods.QueryableAsQueryableGeneric.MakeGenericMethod(elementType), context.VisitedNode);
             }
             else
             {
@@ -166,13 +170,12 @@ namespace Microsoft.Restier.Core
 
             var queryType = typeof(EnumerableQuery<>).MakeGenericType(elementType);
             var query = Activator.CreateInstance(queryType, enumerableQueryParameter);
-            var result = method.Invoke(apiBase, new object[] { query }) as IQueryable;
-            if (result == null)
+            if (!(expectedMethod.Invoke(apiBase, new object[] { query }) is IQueryable result))
             {
                 return null;
             }
 
-            if (method.ReturnType == returnType)
+            if (expectedMethod.ReturnType == returnType)
             {
                 if (result != query)
                 {

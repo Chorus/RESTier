@@ -1,9 +1,9 @@
 ﻿// Copyright (c) Microsoft Corporation.  All rights reserved.
 // Licensed under the MIT License.  See License.txt in the project root for license information.
 
+using Microsoft.OData.Edm;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.OData.Edm;
 
 namespace Microsoft.Restier.Core
 {
@@ -26,7 +26,7 @@ namespace Microsoft.Restier.Core
 
         internal IEdmModel Model { get; private set; }
 
-        internal TaskCompletionSource<IEdmModel> CompeteModelGeneration(out Task<IEdmModel> running)
+        internal TaskCompletionSource<IEdmModel> CompleteModelGeneration(out Task<IEdmModel> running)
         {
             var source = new TaskCompletionSource<IEdmModel>(TaskCreationOptions.AttachedToParent);
             var runningTask = Interlocked.CompareExchange(ref modelTask, source.Task, null);
