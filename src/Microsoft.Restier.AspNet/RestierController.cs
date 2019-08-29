@@ -387,6 +387,11 @@ namespace Microsoft.Restier.AspNet
                 changeSet.Entries.Add(updateItem);
 
                 var result = await Api.SubmitAsync(changeSet, cancellationToken).ConfigureAwait(false);
+
+                if (result?.Exception != null && result.ExceptionItem != null)
+                {
+                    return CreateConflictODataResult(result.ExceptionItem);
+                }
             }
             else
             {
@@ -672,6 +677,9 @@ namespace Microsoft.Restier.AspNet
         }
 
         private IHttpActionResult CreateCreatedODataResult(object entity) => CreateResult(typeof(CreatedODataResult<>), entity);
+
+        private IHttpActionResult CreateConflictODataResult(object entity) => CreateResult(typeof(ConflictedODataResult<>), entity);
+
 
         private IHttpActionResult CreateUpdatedODataResult(object entity) => CreateResult(typeof(UpdatedODataResult<>), entity);
 

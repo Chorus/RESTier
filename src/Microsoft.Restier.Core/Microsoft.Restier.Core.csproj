@@ -30,7 +30,7 @@
       <_Parameter1>Microsoft.Restier.Tests.Core</_Parameter1>
     </AssemblyAttribute>
   </ItemGroup>
-  
+
   <ItemGroup Condition=" '$(TargetFramework)' != 'netstandard2.0' ">
     <Compile Remove="DataAnnotations\AssociatedMetadataTypeTypeDescriptionProvider.cs" />
     <Compile Remove="DataAnnotations\AssociatedMetadataTypeTypeDescriptor.cs" />

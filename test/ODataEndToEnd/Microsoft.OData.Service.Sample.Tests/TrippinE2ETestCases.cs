@@ -7,7 +7,6 @@ using System.IO;
 using System.Linq;
 using System.Net;
 using Microsoft.OData.Client;
-using Microsoft.OData.Core;
 using Microsoft.OData.Service.Sample.Trippin.Models;
 using Newtonsoft.Json;
 using Xunit;
@@ -960,7 +959,7 @@ namespace Microsoft.OData.Service.Sample.Tests
             ODataMessageReaderSettings readerSettings = new ODataMessageReaderSettings()
             {
                 BaseUri = ServiceBaseUri,
-                UndeclaredPropertyBehaviorKinds = ODataUndeclaredPropertyBehaviorKinds.IgnoreUndeclaredValueProperty
+                //UndeclaredPropertyBehaviorKinds = ODataUndeclaredPropertyBehaviorKinds.IgnoreUndeclaredValueProperty
             };
 
             foreach (var testCase in testCases)
@@ -983,18 +982,18 @@ namespace Microsoft.OData.Service.Sample.Tests
                         readerSettings,
                         this.TestClientContext.Format.LoadServiceModel()))
                     {
-                        var reader = messageReader.CreateODataFeedReader();
+                        var reader = messageReader.CreateODataResourceSetReader();
 
                         while (reader.Read())
                         {
-                            if (reader.State == ODataReaderState.EntryEnd)
+                            if (reader.State == ODataReaderState.ResourceEnd)
                             {
-                                ODataEntry entry = reader.Item as ODataEntry;
-                                Assert.NotNull(entry.Properties.Single(p => p.Name == "PersonId").Value);
+                                ODataResource resource = reader.Item as ODataResource;
+                                Assert.NotNull(resource.Properties.Single(p => p.Name == "PersonId").Value);
                             }
-                            else if (reader.State == ODataReaderState.FeedEnd)
+                            else if (reader.State == ODataReaderState.ResourceSetEnd)
                             {
-                                Assert.NotNull(reader.Item as ODataFeed);
+                                Assert.NotNull(reader.Item as ODataResourceSet);
                             }
                         }
 

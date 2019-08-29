@@ -82,8 +82,9 @@ namespace Microsoft.Restier.Core
         public virtual IServiceProvider BuildContainer()
         {
             AddRestierService();
+
             return services.BuildServiceProvider();
-        }
+        }    
 
         internal IContainerBuilder AddRestierService()
         {
