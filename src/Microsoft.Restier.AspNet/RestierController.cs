@@ -386,7 +386,7 @@ namespace Microsoft.Restier.AspNet
                 var changeSet = new ChangeSet();
                 changeSet.Entries.Add(updateItem);
 
-                SubmitResult result = await Api.SubmitAsync(changeSet, cancellationToken);
+                var result = await Api.SubmitAsync(changeSet, cancellationToken);
 
                 if (result?.Exception is PreconditionFailedException && result.ExceptionItem != null)
                 {
@@ -677,15 +677,9 @@ namespace Microsoft.Restier.AspNet
         }
 
         private IHttpActionResult CreateCreatedODataResult(object entity) => CreateResult(typeof(CreatedODataResult<>), entity);
-        private IHttpActionResult CreateConflictODataResult(object entity)
-        {
-            return this.CreateResult(typeof(ConflictedODataResult<>), entity);
-        }
 
-        private IHttpActionResult CreateCreatedODataResult(object entity)
-        {
-            return this.CreateResult(typeof(CreatedODataResult<>), entity);
-        }
+        private IHttpActionResult CreateConflictODataResult(object entity) => CreateResult(typeof(ConflictedODataResult<>), entity);
+
 
         private IHttpActionResult CreateUpdatedODataResult(object entity) => CreateResult(typeof(UpdatedODataResult<>), entity);
 

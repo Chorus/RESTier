@@ -83,12 +83,8 @@ namespace Microsoft.Restier.Core
         {
             AddRestierService();
 
-            Assembly microsoftExtensionsDependencyInjectionAssembly = services.GetType().GetTypeInfo().Assembly;
-            TypeInfo serviceCollectionContainerBuilderExtensionsType = microsoftExtensionsDependencyInjectionAssembly.GetType(typeof(ServiceCollectionContainerBuilderExtensions).GetTypeInfo().FullName).GetTypeInfo();
-            MethodInfo buildServiceProviderMethod = serviceCollectionContainerBuilderExtensionsType.GetMethod("BuildServiceProvider", new[] { typeof(IServiceCollection) });
-
-            return (IServiceProvider)buildServiceProviderMethod.Invoke(null, new object[] { services });
-         }
+            return services.BuildServiceProvider();
+        }    
 
         internal IContainerBuilder AddRestierService()
         {

@@ -1,17 +1,6 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <ProjectGuid>{F1BEAB8D-82D4-4BBB-A5C6-BA0E6872E508}</ProjectGuid>
-    <OutputType>Library</OutputType>
-    <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>Microsoft.Restier.Core</RootNamespace>
-    <AssemblyName>Microsoft.Restier.Core</AssemblyName>
-    <DocumentationFile>$(OutputPath)$(AssemblyName).xml</DocumentationFile>
-    <RunCodeAnalysis>$(CodeAnalysis)</RunCodeAnalysis>
-    <CodeAnalysisRuleSet>..\Strict.ruleset</CodeAnalysisRuleSet>
-    <TargetFrameworkVersion>v4.7.1</TargetFrameworkVersion>
-    <TargetFrameworkProfile />
-    <!-- TODO: compile as a portable assembly -->
     <Summary>Restier is a framework for building convention-based, secure, queryable APIs with ASP.NET. This package contains runtime components for implementing Restier convention semantics and query interception.</Summary>
     <Description>
       $(Summary)
@@ -25,58 +14,6 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Reference Include="Microsoft.Extensions.DependencyInjection, Version=2.1.1.0, Culture=neutral, PublicKeyToken=adb9793829ddae60, processorArchitecture=MSIL">
-      <HintPath>..\..\packages\Microsoft.Extensions.DependencyInjection.2.1.1\lib\net461\Microsoft.Extensions.DependencyInjection.dll</HintPath>
-    </Reference>
-    <Reference Include="Microsoft.Extensions.DependencyInjection.Abstractions, Version=2.1.1.0, Culture=neutral, PublicKeyToken=adb9793829ddae60, processorArchitecture=MSIL">
-      <HintPath>..\..\packages\Microsoft.Extensions.DependencyInjection.Abstractions.2.1.1\lib\netstandard2.0\Microsoft.Extensions.DependencyInjection.Abstractions.dll</HintPath>
-    </Reference>
-    <Reference Include="Microsoft.OData.Core, Version=7.5.0.20627, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
-      <HintPath>..\..\packages\Microsoft.OData.Core.7.5.0\lib\portable-net45+win8+wpa81\Microsoft.OData.Core.dll</HintPath>
-    </Reference>
-    <Reference Include="Microsoft.OData.Edm, Version=7.5.0.20627, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
-      <HintPath>..\..\packages\Microsoft.OData.Edm.7.5.0\lib\portable-net45+win8+wpa81\Microsoft.OData.Edm.dll</HintPath>
-    </Reference>
-    <Reference Include="Microsoft.Spatial, Version=7.5.0.20627, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
-      <HintPath>..\..\packages\Microsoft.Spatial.7.5.0\lib\portable-net45+win8+wpa81\Microsoft.Spatial.dll</HintPath>
-    </Reference>
-    <Reference Include="System" />
-    <Reference Include="System.ComponentModel.Composition" />
-    <Reference Include="System.ComponentModel.DataAnnotations" />
-    <Reference Include="System.Core" />
-    <Reference Include="System.IO.Compression" />
-    <Reference Include="System.Net.Http, Version=4.1.1.2, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
-      <HintPath>..\..\packages\System.Net.Http.4.3.3\lib\net46\System.Net.Http.dll</HintPath>
-      <Private>True</Private>
-      <Private>True</Private>
-    </Reference>
-    <Reference Include="System.Numerics" />
-    <Reference Include="System.Runtime.InteropServices.RuntimeInformation, Version=4.0.1.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
-      <HintPath>..\..\packages\System.Runtime.InteropServices.RuntimeInformation.4.3.0\lib\net45\System.Runtime.InteropServices.RuntimeInformation.dll</HintPath>
-    </Reference>
-    <Reference Include="System.Security.Cryptography.Algorithms, Version=4.2.1.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
-      <HintPath>..\..\packages\System.Security.Cryptography.Algorithms.4.3.1\lib\net463\System.Security.Cryptography.Algorithms.dll</HintPath>
-      <Private>True</Private>
-      <Private>True</Private>
-    </Reference>
-    <Reference Include="System.Security.Cryptography.Encoding, Version=4.0.1.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
-      <HintPath>..\..\packages\System.Security.Cryptography.Encoding.4.3.0\lib\net46\System.Security.Cryptography.Encoding.dll</HintPath>
-      <Private>True</Private>
-    </Reference>
-    <Reference Include="System.Security.Cryptography.Primitives, Version=4.0.1.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
-      <HintPath>..\..\packages\System.Security.Cryptography.Primitives.4.3.0\lib\net46\System.Security.Cryptography.Primitives.dll</HintPath>
-      <Private>True</Private>
-    </Reference>
-    <Reference Include="System.Security.Cryptography.X509Certificates, Version=4.1.1.2, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
-      <HintPath>..\..\packages\System.Security.Cryptography.X509Certificates.4.3.2\lib\net461\System.Security.Cryptography.X509Certificates.dll</HintPath>
-      <Private>True</Private>
-    </Reference>
-    <Reference Include="System.Xml" />
-    <Reference Include="System.Xml.Linq" />
-    <Reference Include="System.Xml.ReaderWriter, Version=4.1.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
-      <HintPath>..\..\packages\System.Xml.ReaderWriter.4.3.1\lib\net46\System.Xml.ReaderWriter.dll</HintPath>
-      <Private>True</Private>
-    </Reference>
     <Compile Remove="Exceptions\PreconditionFailedException.cs" />
     <Compile Remove="Exceptions\PreconditionRequiredException.cs" />
     <Compile Remove="Exceptions\ResourceNotFoundException.cs" />
@@ -93,7 +30,7 @@
       <_Parameter1>Microsoft.Restier.Tests.Core</_Parameter1>
     </AssemblyAttribute>
   </ItemGroup>
-  
+
   <ItemGroup Condition=" '$(TargetFramework)' != 'netstandard2.0' ">
     <Compile Remove="DataAnnotations\AssociatedMetadataTypeTypeDescriptionProvider.cs" />
     <Compile Remove="DataAnnotations\AssociatedMetadataTypeTypeDescriptor.cs" />
@@ -113,36 +50,6 @@
       <AutoGen>True</AutoGen>
       <DependentUpon>Resources.resx</DependentUpon>
     </Compile>
-    <Compile Include="PropertyBag.cs" />
-    <Compile Include="QueryableSource.cs" />
-    <Compile Include="Query\DefaultQueryExecutor.cs" />
-    <Compile Include="Query\DefaultQueryHandler.cs" />
-    <Compile Include="Query\IQueryExecutor.cs" />
-    <Compile Include="Query\IQueryExpressionExpander.cs" />
-    <Compile Include="Query\IQueryExpressionProcessor.cs" />
-    <Compile Include="Query\IQueryExpressionAuthorizer.cs" />
-    <Compile Include="Query\IQueryExpressionSourcer.cs" />
-    <Compile Include="Query\QueryContext.cs" />
-    <Compile Include="Query\QueryExpressionContext.cs" />
-    <Compile Include="Query\QueryModelReference.cs" />
-    <Compile Include="Query\QueryRequest.cs" />
-    <Compile Include="Query\QueryResult.cs" />
-    <Compile Include="Submit\ChangeSet.cs" />
-    <Compile Include="Submit\ChangeSetItem.cs" />
-    <Compile Include="Submit\DefaultSubmitHandler.cs" />
-    <Compile Include="Submit\IChangeSetItemAuthorizer.cs" />
-    <Compile Include="Submit\IChangeSetItemFilter.cs" />
-    <Compile Include="Submit\IChangeSetItemValidator.cs" />
-    <Compile Include="Submit\IChangeSetInitializer.cs" />
-    <Compile Include="Submit\ISubmitExecutor.cs" />
-    <Compile Include="Submit\SubmitContext.cs" />
-    <Compile Include="Submit\SubmitResult.cs" />
-    <Compile Include="Submit\ChangeSetValidationException.cs" />
-    <Compile Include="Submit\ChangeSetItemValidationResult.cs" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="Microsoft.Restier.Core.nuspec" />
-    <None Include="packages.config" />
   </ItemGroup>
 
   <ItemGroup>
@@ -156,7 +63,5 @@
   <ItemGroup>
     <PackageReference Update="Microsoft.CodeQuality.Analyzers" Version="[2.9.3, 3.0.0)" />
   </ItemGroup>
-  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
-</Project>
 
 </Project>
