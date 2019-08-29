@@ -11,15 +11,32 @@ using System.Diagnostics.Contracts;
 
 namespace Microsoft.AspNet.OData.Results
 {
+    /// <summary>
+    /// 
+    /// </summary>
+    /// <typeparam name="T"></typeparam>
     public class ConflictedODataResult<T> : IHttpActionResult
     {
         private readonly NegotiatedContentResult<T> _innerResult;
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="entity"></param>
+        /// <param name="controller"></param>
         public ConflictedODataResult(T entity, ApiController controller)
         : this(new NegotiatedContentResult<T>(HttpStatusCode.PreconditionFailed, CheckNull(entity), controller))
         {
 
         }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="entity"></param>
+        /// <param name="contentNegotiator"></param>
+        /// <param name="request"></param>
+        /// <param name="formatters"></param>
         public ConflictedODataResult(T entity, IContentNegotiator contentNegotiator, HttpRequestMessage request, IEnumerable<MediaTypeFormatter> formatters)
             : this(new NegotiatedContentResult<T>(HttpStatusCode.PreconditionFailed, CheckNull(entity), contentNegotiator, request, formatters))
         {
@@ -55,7 +72,7 @@ namespace Microsoft.AspNet.OData.Results
         public virtual async Task<HttpResponseMessage> ExecuteAsync(CancellationToken cancellationToken)
         {
             var result = GetInnerActionResult();
-            var response = await result.ExecuteAsync(cancellationToken);
+            var response = await result.ExecuteAsync(cancellationToken).ConfigureAwait(false);
             return response;
         }
 

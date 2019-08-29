@@ -386,9 +386,9 @@ namespace Microsoft.Restier.AspNet
                 var changeSet = new ChangeSet();
                 changeSet.Entries.Add(updateItem);
 
-                var result = await Api.SubmitAsync(changeSet, cancellationToken);
+                var result = await Api.SubmitAsync(changeSet, cancellationToken).ConfigureAwait(false);
 
-                if (result?.Exception is PreconditionFailedException && result.ExceptionItem != null)
+                if (result?.Exception != null && result.ExceptionItem != null)
                 {
                     return CreateConflictODataResult(result.ExceptionItem);
                 }

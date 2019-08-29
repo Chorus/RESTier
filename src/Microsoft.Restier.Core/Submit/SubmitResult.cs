@@ -35,8 +35,8 @@ namespace Microsoft.Restier.Core.Submit
         /// <param name="item">related item for error</param>
         public SubmitResult(Exception exception, object item)
         {
-            Ensure.NotNull(exception, "exception");
-            Ensure.NotNull(item, "item");
+            Ensure.NotNull(exception, nameof(exception));
+            Ensure.NotNull(item, nameof(item));
             this.Exception = exception;
             this.ExceptionItem = item;
         }
@@ -72,13 +72,16 @@ namespace Microsoft.Restier.Core.Submit
             }
         }
 
+        /// <summary>
+        /// Gets or sets the item on the Exception.
+        /// </summary>
         public object ExceptionItem
         {
             get => this.exceptionItem;
 
             set
             {
-                Ensure.NotNull(value, "value");
+                Ensure.NotNull(value, nameof(value));
                 this.exceptionItem = value;
             }
         }
