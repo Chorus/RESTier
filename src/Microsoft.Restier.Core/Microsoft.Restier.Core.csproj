@@ -1,6 +1,5 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
-<Project ToolsVersion="14.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
-  <Import Project="$([MSBuild]::GetDirectoryNameOfFileAbove($(MSBuildThisFileDirectory),RESTier.sln))\tools\RESTier.settings.targets" />
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
   <PropertyGroup>
     <ProjectGuid>{F1BEAB8D-82D4-4BBB-A5C6-BA0E6872E508}</ProjectGuid>
     <OutputType>Library</OutputType>
@@ -13,7 +12,18 @@
     <TargetFrameworkVersion>v4.7.1</TargetFrameworkVersion>
     <TargetFrameworkProfile />
     <!-- TODO: compile as a portable assembly -->
+    <Summary>Restier is a framework for building convention-based, secure, queryable APIs with ASP.NET. This package contains runtime components for implementing Restier convention semantics and query interception.</Summary>
+    <Description>
+      $(Summary)
+
+      Commonly used types:
+      Microsoft.Restier.Core.RestierController
+    </Description>
+    <PackageTags>$(PackageTags)</PackageTags>
+
+    <TargetFrameworks>netstandard2.0;net462</TargetFrameworks>
   </PropertyGroup>
+
   <ItemGroup>
     <Reference Include="Microsoft.Extensions.DependencyInjection, Version=2.1.1.0, Culture=neutral, PublicKeyToken=adb9793829ddae60, processorArchitecture=MSIL">
       <HintPath>..\..\packages\Microsoft.Extensions.DependencyInjection.2.1.1\lib\net461\Microsoft.Extensions.DependencyInjection.dll</HintPath>
@@ -67,65 +77,40 @@
       <HintPath>..\..\packages\System.Xml.ReaderWriter.4.3.1\lib\net46\System.Xml.ReaderWriter.dll</HintPath>
       <Private>True</Private>
     </Reference>
+    <Compile Remove="Exceptions\PreconditionFailedException.cs" />
+    <Compile Remove="Exceptions\PreconditionRequiredException.cs" />
+    <Compile Remove="Exceptions\ResourceNotFoundException.cs" />
   </ItemGroup>
+
   <ItemGroup>
-    <Compile Include="..\CommonAssemblyInfo.cs">
-      <Link>Properties\CommonAssemblyInfo.cs</Link>
-    </Compile>
-    <Compile Include="..\GlobalSuppressions.cs">
-      <Link>GlobalSuppressions.cs</Link>
-      <ExcludeFromStyleCop>true</ExcludeFromStyleCop>
-    </Compile>
-    <Compile Include="..\Shared\Ensure.cs">
-      <Link>Shared\Ensure.cs</Link>
-    </Compile>
-    <Compile Include="..\Shared\EnumerableExtensions.cs">
-      <Link>Shared\EnumerableExtensions.cs</Link>
-    </Compile>
-    <Compile Include="..\Shared\ExpressionHelperMethods.cs">
-      <Link>Shared\ExpressionHelperMethods.cs</Link>
-    </Compile>
-    <Compile Include="..\Shared\ExpressionHelpers.cs">
-      <Link>Shared\ExpressionHelpers.cs</Link>
-    </Compile>
-    <Compile Include="..\Shared\TypeExtensions.cs">
-      <Link>Shared\TypeExtensions.cs</Link>
-    </Compile>
-    <Compile Include="..\Shared\SharedResources\SharedResources.Core.Designer.cs">
-      <AutoGen>True</AutoGen>
+    <AssemblyAttribute Include="System.Runtime.CompilerServices.InternalsVisibleTo">
+      <_Parameter1>Microsoft.Restier.AspNet</_Parameter1>
+    </AssemblyAttribute>
+    <AssemblyAttribute Include="System.Runtime.CompilerServices.InternalsVisibleTo">
+      <_Parameter1>Microsoft.Restier.EntityFramework</_Parameter1>
+    </AssemblyAttribute>
+    <AssemblyAttribute Include="System.Runtime.CompilerServices.InternalsVisibleTo">
+      <_Parameter1>Microsoft.Restier.Tests.Core</_Parameter1>
+    </AssemblyAttribute>
+  </ItemGroup>
+  
+  <ItemGroup Condition=" '$(TargetFramework)' != 'netstandard2.0' ">
+    <Compile Remove="DataAnnotations\AssociatedMetadataTypeTypeDescriptionProvider.cs" />
+    <Compile Remove="DataAnnotations\AssociatedMetadataTypeTypeDescriptor.cs" />
+    <Compile Remove="DataAnnotations\MetadataPropertyDescriptorWrapper.cs" />
+    <Compile Remove="DataAnnotations\MetadataTypeAttribute.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="[2.2.0, 3.0.0)" />
+    <PackageReference Include="Microsoft.OData.Core" Version="[7.6.0, 8.0.0)" />
+    <PackageReference Include="System.ComponentModel.Annotations" Version="[4.5.0, 5.0.0)" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Update="Properties\Resources.Designer.cs">
       <DesignTime>True</DesignTime>
-      <DependentUpon>SharedResources.resx</DependentUpon>
-    </Compile>
-    <Compile Include="Conventions\ConventionBasedOperationFilter.cs" />
-    <Compile Include="Conventions\ConventionBasedOperationAuthorizer.cs" />
-    <Compile Include="Conventions\ConventionBasedChangeSetItemAuthorizer.cs" />
-    <Compile Include="Conventions\ConventionBasedChangeSetConstants.cs" />
-    <Compile Include="Conventions\ConventionBasedChangeSetItemFilter.cs" />
-    <Compile Include="Conventions\ConventionBasedChangeSetItemValidator.cs" />
-    <Compile Include="Conventions\ConventionBasedQueryExpressionProcessor.cs" />
-    <Compile Include="ApiBase.cs" />
-    <Compile Include="ApiConfiguration.cs" />
-    <Compile Include="ApiBaseExtensions.cs" />
-    <Compile Include="DataSourceStub.cs" />
-    <Compile Include="Exceptions\PreconditionRequiredException.cs" />
-    <Compile Include="Exceptions\PreconditionFailedException.cs" />
-    <Compile Include="Exceptions\ResourceNotFoundException.cs" />
-    <Compile Include="InvocationContext.cs" />
-    <Compile Include="InvocationContextExtensions.cs" />
-    <Compile Include="Model\EdmHelpers.cs" />
-    <Compile Include="Model\ModelContext.cs" />
-    <Compile Include="Operation\IOperationFilter.cs" />
-    <Compile Include="Operation\IOperationAuthorizer.cs" />
-    <Compile Include="Operation\IOperationExecutor.cs" />
-    <Compile Include="Operation\OperationContext.cs" />
-    <Compile Include="RestierContainerBuilder.cs" />
-    <Compile Include="ServiceCollectionExtensions.cs" />
-    <Compile Include="Model\IModelBuilder.cs" />
-    <Compile Include="Model\IModelMapper.cs" />
-    <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="Properties\Resources.Designer.cs">
       <AutoGen>True</AutoGen>
-      <DesignTime>True</DesignTime>
       <DependentUpon>Resources.resx</DependentUpon>
     </Compile>
     <Compile Include="PropertyBag.cs" />
@@ -159,17 +144,19 @@
     <None Include="Microsoft.Restier.Core.nuspec" />
     <None Include="packages.config" />
   </ItemGroup>
+
   <ItemGroup>
-    <EmbeddedResource Include="Properties\Resources.resx">
+    <EmbeddedResource Update="Properties\Resources.resx">
       <Generator>ResXFileCodeGenerator</Generator>
       <LastGenOutput>Resources.Designer.cs</LastGenOutput>
       <CustomToolNamespace>Microsoft.Restier.Core</CustomToolNamespace>
     </EmbeddedResource>
   </ItemGroup>
+
   <ItemGroup>
-    <CodeAnalysisDictionary Include="..\CodeAnalysisDictionary.xml">
-      <Link>CodeAnalysisDictionary.xml</Link>
-    </CodeAnalysisDictionary>
+    <PackageReference Update="Microsoft.CodeQuality.Analyzers" Version="[2.9.3, 3.0.0)" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+</Project>
+
 </Project>

@@ -7,38 +7,10 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
 using System.Linq.Expressions;
+using System.Net;
 
 namespace Microsoft.Restier.Core.Submit
 {
-    /// <summary>
-    /// This enum controls the actions requested for an resource.
-    /// </summary>
-    /// <remarks>
-    /// This is required because during the post-CUD events, the resource state has been lost.
-    /// This enum allows the API to remember which pre-CUD event was raised for the Resource.
-    /// </remarks>
-    public enum DataModificationItemAction
-    {
-        /// <summary>
-        /// Specifies an undefined action.
-        /// </summary>
-        Undefined = 0,
-
-        /// <summary>
-        /// Specifies the resource is being updated.
-        /// </summary>
-        Update,
-
-        /// <summary>
-        /// Specifies the resource is being inserted.
-        /// </summary>
-        Insert,
-
-        /// <summary>
-        /// Specifies the resource is being removed.
-        /// </summary>
-        Remove
-    }
 
     /// <summary>
     /// Specifies the type of a change set item.
@@ -90,8 +62,8 @@ namespace Microsoft.Restier.Core.Submit
     {
         internal ChangeSetItem(ChangeSetItemType type)
         {
-            this.Type = type;
-            this.ChangeSetItemProcessingStage = ChangeSetItemProcessingStage.Initialized;
+            Type = type;
+            ChangeSetItemProcessingStage = ChangeSetItemProcessingStage.Initialized;
         }
 
         /// <summary>
@@ -112,8 +84,8 @@ namespace Microsoft.Restier.Core.Submit
         /// </returns>
         public bool HasChanged()
         {
-            return this.ChangeSetItemProcessingStage == ChangeSetItemProcessingStage.Initialized ||
-                this.ChangeSetItemProcessingStage == ChangeSetItemProcessingStage.ChangedWithinOwnPreEventing;
+            return ChangeSetItemProcessingStage == ChangeSetItemProcessingStage.Initialized ||
+                ChangeSetItemProcessingStage == ChangeSetItemProcessingStage.ChangedWithinOwnPreEventing;
         }
     }
 
@@ -137,7 +109,7 @@ namespace Microsoft.Restier.Core.Submit
         /// The type of the actual resource type in question.
         /// </param>
         /// <param name="action">
-        /// The DataModificationItemAction for the request.
+        /// The RestierEntitySetOperations for the request.
         /// </param>
         /// <param name="resourceKey">
         /// The key of the resource being modified.
@@ -152,21 +124,21 @@ namespace Microsoft.Restier.Core.Submit
             string resourceSetName,
             Type expectedResourceType,
             Type actualResourceType,
-            DataModificationItemAction action,
+            RestierEntitySetOperation action,
             IReadOnlyDictionary<string, object> resourceKey,
             IReadOnlyDictionary<string, object> originalValues,
             IReadOnlyDictionary<string, object> localValues)
             : base(ChangeSetItemType.DataModification)
         {
-            Ensure.NotNull(resourceSetName, "resourceSetName");
-            Ensure.NotNull(expectedResourceType, "expectedResourceType");
-            this.ResourceSetName = resourceSetName;
-            this.ExpectedResourceType = expectedResourceType;
-            this.ActualResourceType = actualResourceType;
-            this.ResourceKey = resourceKey;
-            this.OriginalValues = originalValues;
-            this.LocalValues = localValues;
-            this.DataModificationItemAction = action;
+            Ensure.NotNull(resourceSetName, nameof(resourceSetName));
+            Ensure.NotNull(expectedResourceType, nameof(expectedResourceType));
+            ResourceSetName = resourceSetName;
+            ExpectedResourceType = expectedResourceType;
+            ActualResourceType = actualResourceType;
+            ResourceKey = resourceKey;
+            OriginalValues = originalValues;
+            LocalValues = localValues;
+            EntitySetOperation = action;
         }
 
         /// <summary>
@@ -193,7 +165,7 @@ namespace Microsoft.Restier.Core.Submit
         /// <summary>
         /// Gets or sets the action to be taken.
         /// </summary>
-        public DataModificationItemAction DataModificationItemAction { get; set; }
+        public RestierEntitySetOperation EntitySetOperation { get; set; }
 
         /// <summary>
         /// Gets or sets a value indicating whether the resource should be fully replaced by the modification.
@@ -219,11 +191,7 @@ namespace Microsoft.Restier.Core.Submit
         /// <remarks>
         /// For new entities, this property is <c>null</c>.
         /// </remarks>
-        public IReadOnlyDictionary<string, object> OriginalValues
-        {
-            get;
-            private set;
-        }
+        public IReadOnlyDictionary<string, object> OriginalValues { get; private set; }
 
         /// <summary>
         /// Gets the current server values for properties that have changed.
@@ -232,11 +200,7 @@ namespace Microsoft.Restier.Core.Submit
         /// For new entities, this property is <c>null</c>. For updated
         /// entities, it is <c>null</c> until the change set is prepared.
         /// </remarks>
-        public IReadOnlyDictionary<string, object> ServerValues
-        {
-            get;
-            private set;
-        }
+        public IReadOnlyDictionary<string, object> ServerValues { get; private set; }
 
         /// <summary>
         /// Gets the local values for properties that have changed.
@@ -244,11 +208,7 @@ namespace Microsoft.Restier.Core.Submit
         /// <remarks>
         /// For entities pending deletion, this property is <c>null</c>.
         /// </remarks>
-        public IReadOnlyDictionary<string, object> LocalValues
-        {
-            get;
-            private set;
-        }
+        public IReadOnlyDictionary<string, object> LocalValues { get; private set; }
 
         /// <summary>
         /// Applies the current DataModificationItem's KeyValues and OriginalValues to the
@@ -260,19 +220,19 @@ namespace Microsoft.Restier.Core.Submit
         /// </returns>
         public IQueryable ApplyTo(IQueryable query)
         {
-            Ensure.NotNull(query, "query");
-            if (this.DataModificationItemAction == DataModificationItemAction.Insert)
+            Ensure.NotNull(query, nameof(query));
+            if (EntitySetOperation == RestierEntitySetOperation.Insert)
             {
                 throw new InvalidOperationException(Resources.DataModificationNotSupportCreateResource);
             }
 
-            Type type = query.ElementType;
-            ParameterExpression param = Expression.Parameter(type);
+            var type = query.ElementType;
+            var param = Expression.Parameter(type);
             Expression where = null;
 
-            if (this.ResourceKey != null)
+            if (ResourceKey != null)
             {
-                foreach (KeyValuePair<string, object> item in this.ResourceKey)
+                foreach (var item in ResourceKey)
                 {
                     where = ApplyPredicate(param, where, item);
                 }
@@ -283,7 +243,7 @@ namespace Microsoft.Restier.Core.Submit
                 throw new InvalidOperationException(Resources.DataModificationRequiresResourceKey);
             }
 
-            LambdaExpression whereLambda = Expression.Lambda(where, param);
+            var whereLambda = Expression.Lambda(where, param);
             return ExpressionHelpers.Where(query, whereLambda, type);
         }
 
@@ -297,14 +257,14 @@ namespace Microsoft.Restier.Core.Submit
         /// </returns>
         public object ValidateEtag(IQueryable query)
         {
-            Ensure.NotNull(query, "query");
-            Type type = query.ElementType;
-            ParameterExpression param = Expression.Parameter(type);
+            Ensure.NotNull(query, nameof(query));
+            var type = query.ElementType;
+            var param = Expression.Parameter(type);
             Expression where = null;
 
-            if (this.OriginalValues != null)
+            if (OriginalValues != null)
             {
-                foreach (KeyValuePair<string, object> item in this.OriginalValues)
+                foreach (var item in OriginalValues)
                 {
                     if (!item.Key.StartsWith("@", StringComparison.Ordinal))
                     {
@@ -312,40 +272,41 @@ namespace Microsoft.Restier.Core.Submit
                     }
                 }
 
-                if (this.OriginalValues.ContainsKey(IfNoneMatchKey))
+                if (OriginalValues.ContainsKey(IfNoneMatchKey))
                 {
                     where = Expression.Not(where);
                 }
             }
 
-            LambdaExpression whereLambda = Expression.Lambda(where, param);
+            var whereLambda = Expression.Lambda(where, param);
             var queryable = ExpressionHelpers.Where(query, whereLambda, type);
 
             var matchedResource = queryable.SingleOrDefault();
             if (matchedResource == null)
             {
                 // If ETAG does not match, should return 412 Precondition Failed
-                var message = string.Format(
-                    CultureInfo.InvariantCulture,
-                    Resources.PreconditionCheckFailed,
-                    new object[] { this.DataModificationItemAction, query.SingleOrDefault() });
-                throw new PreconditionFailedException(message);
+                var message = string.Format(CultureInfo.InvariantCulture, Resources.PreconditionCheckFailed, new object[] { EntitySetOperation, query.SingleOrDefault() });
+                throw new StatusCodeException(HttpStatusCode.PreconditionFailed, message);
             }
 
             return matchedResource;
         }
 
-        private static Expression ApplyPredicate(
-            ParameterExpression param,
-            Expression where,
-            KeyValuePair<string, object> item)
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="param"></param>
+        /// <param name="where"></param>
+        /// <param name="item"></param>
+        /// <returns></returns>
+        private static Expression ApplyPredicate(ParameterExpression param, Expression where, KeyValuePair<string, object> item)
         {
-            MemberExpression property = Expression.Property(param, item.Key);
-            object itemValue = item.Value;
+            var property = Expression.Property(param, item.Key);
+            var itemValue = item.Value;
 
             if (itemValue.GetType() != property.Type)
             {
-                itemValue = Convert.ChangeType(itemValue, property.Type, CultureInfo.InvariantCulture);
+                itemValue = TypeConverter.ChangeType(itemValue, property.Type, CultureInfo.InvariantCulture);
             }
 
             // TODO GitHubIssue#31 : Check if LinqParameterContainer is necessary
@@ -357,11 +318,7 @@ namespace Microsoft.Restier.Core.Submit
             if (property.Type == typeof(byte[]))
             {
                 left = Expression.Call(typeof(BitConverter), "ToString", null, new Expression[] { property });
-                right = Expression.Call(
-                    typeof(BitConverter),
-                    "ToString",
-                    null,
-                    new Expression[] { Expression.Constant(itemValue, property.Type) });
+                right = Expression.Call(typeof(BitConverter), "ToString", null, new Expression[] { Expression.Constant(itemValue, property.Type) });
             }
 
             var equal = Expression.Equal(left, right);
@@ -389,7 +346,7 @@ namespace Microsoft.Restier.Core.Submit
         /// The type of the actual resource type in question.
         /// </param>
         /// <param name="action">
-        /// The DataModificationItemAction for the request.
+        /// The RestierEntitySetOperations for the request.
         /// </param>
         /// <param name="resourceKey">
         /// The key of the resource being modified.
@@ -404,7 +361,7 @@ namespace Microsoft.Restier.Core.Submit
             string resourceSetName,
             Type expectedResourceType,
             Type actualResourceType,
-            DataModificationItemAction action,
+            RestierEntitySetOperation action,
             IReadOnlyDictionary<string, object> resourceKey,
             IReadOnlyDictionary<string, object> originalValues,
             IReadOnlyDictionary<string, object> localValues)
@@ -428,15 +385,9 @@ namespace Microsoft.Restier.Core.Submit
         /// </remarks>
         public new T Resource
         {
-            get
-            {
-                return base.Resource as T;
-            }
+            get => base.Resource as T;
 
-            set
-            {
-                base.Resource = value;
-            }
+            set => base.Resource = value;
         }
     }
 }

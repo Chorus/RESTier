@@ -70,6 +70,15 @@ namespace Microsoft.Restier.Core {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to The associated metadata type for type &apos;{0}&apos; contains the following unknown properties or fields: {1}. Please make sure that the names of these members match the names of the properties on the main type..
+        /// </summary>
+        internal static string AssociatedMetadataTypeTypeDescriptor_MetadataTypeContainsUnknownProperties {
+            get {
+                return ResourceManager.GetString("AssociatedMetadataTypeTypeDescriptor_MetadataTypeContainsUnknownProperties", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Calling the methods in &apos;QueryableSource&apos; or &apos;QueryableSource&lt;T&gt;&apos; is not supported..
         /// </summary>
         internal static string CallQueryableSourceMethodNotSupported {
@@ -214,6 +223,15 @@ namespace Microsoft.Restier.Core {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to MetadataClassType cannot be null..
+        /// </summary>
+        internal static string MetadataTypeAttribute_TypeCannotBeNull {
+            get {
+                return ResourceManager.GetString("MetadataTypeAttribute_TypeCannotBeNull", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to IEdmModel cannot be generated since API service IModelBuilder is not registered..
         /// </summary>
         internal static string ModelBuilderNotRegistered {
@@ -223,7 +241,7 @@ namespace Microsoft.Restier.Core {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The current user does not have permission to delete entities from the EntitySet &apos;{0}&apos;..
+        ///   Looks up a localized string similar to InvalidChangeSetEntryType.
         /// </summary>
         internal static string NoPermissionToDeleteEntity {
             get {
@@ -318,6 +336,24 @@ namespace Microsoft.Restier.Core {
         internal static string QueryExecutorMissing {
             get {
                 return ResourceManager.GetString("QueryExecutorMissing", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The LINQ expression for part {0} was not accessible. This may indicate your query has static member components, possibly from an extension method. This is not currently supported./r/nPlease check the EntitySet filter, and see https://github.com/OData/RESTier/issues/564 for more information..
+        /// </summary>
+        internal static string QueryMemberNotAccessible {
+            get {
+                return ResourceManager.GetString("QueryMemberNotAccessible", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to A query for a single entity resulted in more than one record..
+        /// </summary>
+        internal static string QueryShouldGetSingleRecord {
+            get {
+                return ResourceManager.GetString("QueryShouldGetSingleRecord", resourceCulture);
             }
         }
         

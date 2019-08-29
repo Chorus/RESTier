@@ -24,8 +24,8 @@ namespace Microsoft.Restier.Core.Query
         /// </param>
         public QueryResult(Exception exception)
         {
-            Ensure.NotNull(exception, "exception");
-            this.Exception = exception;
+            Ensure.NotNull(exception, nameof(exception));
+            Exception = exception;
         }
 
         /// <summary>
@@ -36,8 +36,8 @@ namespace Microsoft.Restier.Core.Query
         /// </param>
         public QueryResult(IEnumerable results)
         {
-            Ensure.NotNull(results, "results");
-            this.Results = results;
+            Ensure.NotNull(results, nameof(results));
+            Results = results;
         }
 
         /// <summary>
@@ -48,17 +48,14 @@ namespace Microsoft.Restier.Core.Query
         /// </remarks>
         public Exception Exception
         {
-            get
-            {
-                return this.exception;
-            }
+            get => exception;
 
             set
             {
-                Ensure.NotNull(value, "value");
-                this.exception = value;
-                this.resultsSource = null;
-                this.results = null;
+                Ensure.NotNull(value, nameof(value));
+                exception = value;
+                resultsSource = null;
+                results = null;
             }
         }
 
@@ -71,20 +68,16 @@ namespace Microsoft.Restier.Core.Query
         /// </remarks>
         public IEdmEntitySet ResultsSource
         {
-            get
-            {
-                return this.resultsSource;
-            }
+            get => resultsSource;
 
             set
             {
-                if (this.exception != null)
+                if (exception != null)
                 {
-                    throw new InvalidOperationException(
-                        Resources.CannotSetResultsSourceIfThereIsAnyError);
+                    throw new InvalidOperationException(Resources.CannotSetResultsSourceIfThereIsAnyError);
                 }
 
-                this.resultsSource = value;
+                resultsSource = value;
             }
         }
 
@@ -96,17 +89,14 @@ namespace Microsoft.Restier.Core.Query
         /// </remarks>
         public IEnumerable Results
         {
-            get
-            {
-                return this.results;
-            }
+            get => results;
 
             set
             {
-                Ensure.NotNull(value, "value");
-                this.exception = null;
-                this.resultsSource = null;
-                this.results = value;
+                Ensure.NotNull(value, nameof(value));
+                exception = null;
+                resultsSource = null;
+                results = value;
             }
         }
     }

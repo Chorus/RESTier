@@ -22,8 +22,7 @@ namespace Microsoft.Restier.Core.Query
         private const string MethodNameOfType = "OfType";
 
         private Stack<Expression> visitedNodes = new Stack<Expression>();
-        private IDictionary<Expression, QueryModelReference> modelReferences =
-            new Dictionary<Expression, QueryModelReference>();
+        private IDictionary<Expression, QueryModelReference> modelReferences = new Dictionary<Expression, QueryModelReference>();
 
         /// <summary>
         /// Initializes a new instance of the <see cref="QueryExpressionContext" /> class.
@@ -33,8 +32,8 @@ namespace Microsoft.Restier.Core.Query
         /// </param>
         public QueryExpressionContext(QueryContext queryContext)
         {
-            Ensure.NotNull(queryContext, "queryContext");
-            this.QueryContext = queryContext;
+            Ensure.NotNull(queryContext, nameof(queryContext));
+            QueryContext = queryContext;
         }
 
         /// <summary>
@@ -49,12 +48,12 @@ namespace Microsoft.Restier.Core.Query
         {
             get
             {
-                if (this.visitedNodes.Count == 0)
+                if (visitedNodes.Count == 0)
                 {
                     return null;
                 }
 
-                return this.visitedNodes.Peek();
+                return visitedNodes.Peek();
             }
         }
 
@@ -62,13 +61,7 @@ namespace Microsoft.Restier.Core.Query
         /// Gets a reference to the model element
         /// that represents the visited node.
         /// </summary>
-        public QueryModelReference ModelReference
-        {
-            get
-            {
-                return this.GetModelReferenceForNode(this.VisitedNode);
-            }
-        }
+        public QueryModelReference ModelReference => GetModelReferenceForNode(VisitedNode);
 
         /// <summary>
         /// Gets or sets an action that is invoked after an
@@ -84,8 +77,8 @@ namespace Microsoft.Restier.Core.Query
         /// </param>
         public void PushVisitedNode(Expression visitedNode)
         {
-            this.visitedNodes.Push(visitedNode);
-            this.UpdateModelReference();
+            visitedNodes.Push(visitedNode);
+            UpdateModelReference();
         }
 
         /// <summary>
@@ -96,9 +89,9 @@ namespace Microsoft.Restier.Core.Query
         /// </param>
         public void ReplaceVisitedNode(Expression visitedNode)
         {
-            this.visitedNodes.Pop();
-            this.visitedNodes.Push(visitedNode);
-            this.UpdateModelReference();
+            visitedNodes.Pop();
+            visitedNodes.Push(visitedNode);
+            UpdateModelReference();
         }
 
         /// <summary>
@@ -106,8 +99,8 @@ namespace Microsoft.Restier.Core.Query
         /// </summary>
         public void PopVisitedNode()
         {
-            this.visitedNodes.Pop();
-            this.UpdateModelReference();
+            visitedNodes.Pop();
+            UpdateModelReference();
         }
 
         /// <summary>
@@ -126,7 +119,7 @@ namespace Microsoft.Restier.Core.Query
             QueryModelReference modelReference = null;
             if (node != null)
             {
-                this.modelReferences.TryGetValue(node, out modelReference);
+                modelReferences.TryGetValue(node, out modelReference);
             }
 
             return modelReference;
@@ -230,14 +223,14 @@ namespace Microsoft.Restier.Core.Query
 
         private void UpdateModelReference()
         {
-            if (this.VisitedNode != null &&
-                !this.modelReferences.ContainsKey(this.VisitedNode))
+            if (VisitedNode != null &&
+                !modelReferences.ContainsKey(VisitedNode))
             {
-                var modelReference = this.ComputeModelReference();
+                var modelReference = ComputeModelReference();
                 if (modelReference != null)
                 {
-                    this.modelReferences.Add(
-                        this.VisitedNode, modelReference);
+                    modelReferences.Add(
+                        VisitedNode, modelReference);
                 }
             }
         }
@@ -246,22 +239,21 @@ namespace Microsoft.Restier.Core.Query
         {
             QueryModelReference modelReference = null;
 
-            var methodCall = this.VisitedNode as MethodCallExpression;
+            var methodCall = VisitedNode as MethodCallExpression;
 
             if (methodCall != null)
             {
                 var method = methodCall.Method;
-                if (method.DeclaringType == typeof(DataSourceStub) &&
-                    method.Name != MethodNameOfDataSourceStubValue)
+                if (method.DeclaringType == typeof(DataSourceStub) && method.Name != MethodNameOfDataSourceStubValue)
                 {
                     modelReference = ComputeDataSourceStubReference(methodCall);
                 }
                 else if (method.GetCustomAttributes<ExtensionAttribute>().Any())
                 {
-                    var thisModelReference = this.GetModelReferenceForNode(methodCall.Arguments[0]);
+                    var thisModelReference = GetModelReferenceForNode(methodCall.Arguments[0]);
                     if (thisModelReference != null)
                     {
-                        var model = this.QueryContext.Model;
+                        var model = QueryContext.Model;
                         modelReference = ComputeQueryModelReference(methodCall, thisModelReference, model);
                     }
                 }
@@ -269,14 +261,12 @@ namespace Microsoft.Restier.Core.Query
                 return modelReference;
             }
 
-            var parameter = this.VisitedNode as ParameterExpression;
-            if (parameter != null)
+            if (VisitedNode is ParameterExpression parameter)
             {
                 return ComputeParameterModelReference(parameter);
             }
 
-            var member = this.VisitedNode as MemberExpression;
-            if (member != null)
+            if (VisitedNode is MemberExpression member)
             {
                 return ComputeMemberModelReference(member);
             }
@@ -287,15 +277,14 @@ namespace Microsoft.Restier.Core.Query
         private QueryModelReference ComputeParameterModelReference(ParameterExpression parameter)
         {
             QueryModelReference modelReference = null;
-            foreach (var node in this.GetExpressionTrail())
+            foreach (var node in GetExpressionTrail())
             {
-                var methodCall = node as MethodCallExpression;
-                if (methodCall == null)
+                if (!(node is MethodCallExpression methodCall))
                 {
                     continue;
                 }
 
-                modelReference = this.GetModelReferenceForNode(node);
+                modelReference = GetModelReferenceForNode(node);
                 if (modelReference == null)
                 {
                     continue;
@@ -317,8 +306,7 @@ namespace Microsoft.Restier.Core.Query
                     }
 
                     var resultGenericType = resultType.GenericTypeArguments[0];
-                    if (!resultGenericType.IsGenericType ||
-                        resultGenericType.GenericTypeArguments[0] != sourceType.GenericTypeArguments[0])
+                    if (!resultGenericType.IsGenericType || resultGenericType.GenericTypeArguments[0] != sourceType.GenericTypeArguments[0])
                     {
                         continue;
                     }
@@ -327,12 +315,9 @@ namespace Microsoft.Restier.Core.Query
                 var typeOfT = sourceType.GenericTypeArguments[0];
                 if (parameter.Type == typeOfT)
                 {
-                    var collectionType = modelReference.Type as IEdmCollectionType;
-                    if (collectionType != null)
+                    if (modelReference.Type is IEdmCollectionType collectionType)
                     {
-                        modelReference = new ParameterModelReference(
-                            modelReference.EntitySet,
-                            collectionType.ElementType.Definition);
+                        modelReference = new ParameterModelReference(modelReference.EntitySet, collectionType.ElementType.Definition);
                         return modelReference;
                     }
                 }
@@ -345,9 +330,15 @@ namespace Microsoft.Restier.Core.Query
         {
             QueryModelReference modelReference = null;
             var memberExp = member.Expression;
+
+            if (memberExp == null)
+            {
+                throw new Exception(string.Format(Resources.QueryMemberNotAccessible, member.ToString()));
+            }
+
             if (memberExp.NodeType == ExpressionType.Parameter)
             {
-                modelReference = this.GetModelReferenceForNode(memberExp);
+                modelReference = GetModelReferenceForNode(memberExp);
             }
             else if (memberExp.NodeType == ExpressionType.TypeAs)
             {
@@ -358,18 +349,17 @@ namespace Microsoft.Restier.Core.Query
                 // member expression will be "Param_0 As Person"
                 if (parameterExpression.Type.IsSubclassOf(resultType))
                 {
-                    modelReference = this.GetModelReferenceForNode(parameterExpression);
+                    modelReference = GetModelReferenceForNode(parameterExpression);
                 }
                 else
                 {
                     // member expression will be "Param_0 As Employee"
-                    var emdEntityType = this.QueryContext.Model.FindDeclaredType(resultType.FullName);
+                    var emdEntityType = QueryContext.Model.FindDeclaredType(resultType.FullName);
 
-                    var structuredType = emdEntityType as IEdmStructuredType;
-                    if (structuredType != null)
+                    if (emdEntityType is IEdmStructuredType structuredType)
                     {
                         var property = structuredType.FindProperty(member.Member.Name);
-                        modelReference = this.GetModelReferenceForNode(parameterExpression);
+                        modelReference = GetModelReferenceForNode(parameterExpression);
                         modelReference = new PropertyModelReference(member.Member.Name, property, modelReference);
                         return modelReference;
                     }
@@ -378,15 +368,13 @@ namespace Microsoft.Restier.Core.Query
 
             if (modelReference != null)
             {
-                modelReference = new PropertyModelReference(
-                    modelReference, member.Member.Name);
+                modelReference = new PropertyModelReference(modelReference, member.Member.Name);
             }
 
             return modelReference;
         }
 
-        private DataSourceStubModelReference ComputeDataSourceStubReference(
-            MethodCallExpression methodCall)
+        private DataSourceStubModelReference ComputeDataSourceStubReference(MethodCallExpression methodCall)
         {
             DataSourceStubModelReference modelReference = null;
             ConstantExpression namespaceName = null;
@@ -400,20 +388,15 @@ namespace Microsoft.Restier.Core.Query
             name = methodCall.Arguments[argumentIndex++] as ConstantExpression;
             if ((argumentIndex == 1 || namespaceName != null) && name != null)
             {
-                var nameValue = name.Value as string;
-                if (nameValue != null)
+                if (name.Value is string nameValue)
                 {
                     if (namespaceName == null)
                     {
-                        modelReference = new DataSourceStubModelReference(
-                            this.QueryContext, nameValue);
+                        modelReference = new DataSourceStubModelReference(QueryContext, nameValue);
                     }
                     else
                     {
-                        modelReference = new DataSourceStubModelReference(
-                            this.QueryContext,
-                            namespaceName.Value as string,
-                            nameValue);
+                        modelReference = new DataSourceStubModelReference(QueryContext, namespaceName.Value as string, nameValue);
                     }
                 }
             }
@@ -421,9 +404,6 @@ namespace Microsoft.Restier.Core.Query
             return modelReference;
         }
 
-        private IEnumerable<Expression> GetExpressionTrail()
-        {
-            return this.visitedNodes.TakeWhile(node => node != null);
-        }
+        private IEnumerable<Expression> GetExpressionTrail() => visitedNodes.TakeWhile(node => node != null);
     }
 }

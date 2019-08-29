@@ -2,8 +2,6 @@
 // Licensed under the MIT License.  See License.txt in the project root for license information.
 
 using System;
-using System.Globalization;
-using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.DependencyInjection;
@@ -20,43 +18,36 @@ namespace Microsoft.Restier.Core
 
         private ConventionBasedChangeSetItemAuthorizer(Type targetType)
         {
-            Ensure.NotNull(targetType, "targetType");
+            Ensure.NotNull(targetType, nameof(targetType));
             this.targetType = targetType;
         }
 
         /// <inheritdoc/>
-        public static void ApplyTo(
-            IServiceCollection services,
-            Type targetType)
+        public static void ApplyTo(IServiceCollection services, Type targetType)
         {
-            Ensure.NotNull(services, "services");
-            Ensure.NotNull(targetType, "targetType");
-            services.AddService<IChangeSetItemAuthorizer>(
-                (sp, next) => new ConventionBasedChangeSetItemAuthorizer(targetType));
+            Ensure.NotNull(services, nameof(services));
+            Ensure.NotNull(targetType, nameof(targetType));
+            services.AddService<IChangeSetItemAuthorizer>((sp, next) => new ConventionBasedChangeSetItemAuthorizer(targetType));
         }
 
         /// <inheritdoc/>
-        public Task<bool> AuthorizeAsync(
-            SubmitContext context,
-            ChangeSetItem item,
-            CancellationToken cancellationToken)
+        public Task<bool> AuthorizeAsync(SubmitContext context, ChangeSetItem item, CancellationToken cancellationToken)
         {
-            Ensure.NotNull(context, "context");
-            bool result = true;
+            Ensure.NotNull(context, nameof(context));
+            var result = true;
 
-            Type returnType = typeof(bool);
-            string methodName = GetAuthorizeMethodName(item);
-            MethodInfo method = this.targetType.GetQualifiedMethod(methodName);
+            var returnType = typeof(bool);
+            var dataModification = (DataModificationItem)item;
+            var methodName = ConventionBasedMethodNameFactory.GetEntitySetMethodName(dataModification, RestierPipelineState.Authorization);
+            var method = targetType.GetQualifiedMethod(methodName);
 
-            if (method != null && method.IsFamily &&
-                method.ReturnType == returnType)
+            if (method != null && method.IsFamily && method.ReturnType == returnType)
             {
                 object target = null;
                 if (!method.IsStatic)
                 {
                     target = context.GetApiService<ApiBase>();
-                    if (target == null ||
-                        !this.targetType.IsInstanceOfType(target))
+                    if (target == null || !targetType.IsInstanceOfType(target))
                     {
                         return Task.FromResult(result);
                     }
@@ -72,32 +63,6 @@ namespace Microsoft.Restier.Core
             return Task.FromResult(result);
         }
 
-        private static string GetAuthorizeMethodName(ChangeSetItem item)
-        {
-            switch (item.Type)
-            {
-                case ChangeSetItemType.DataModification:
-                    DataModificationItem dataModification = (DataModificationItem)item;
-                    string operationName = null;
-                    if (dataModification.DataModificationItemAction == DataModificationItemAction.Insert)
-                    {
-                        operationName = ConventionBasedChangeSetConstants.AuthorizeMethodDataModificationInsert;
-                    }
-                    else if (dataModification.DataModificationItemAction == DataModificationItemAction.Update)
-                    {
-                        operationName = ConventionBasedChangeSetConstants.AuthorizeMethodDataModificationUpdate;
-                    }
-                    else if (dataModification.DataModificationItemAction == DataModificationItemAction.Remove)
-                    {
-                        operationName = ConventionBasedChangeSetConstants.AuthorizeMethodDataModificationDelete;
-                    }
-
-                    return operationName + dataModification.ResourceSetName;
-
-                default:
-                    throw new InvalidOperationException(string.Format(
-                        CultureInfo.InvariantCulture, Resources.InvalidChangeSetEntryType, item.Type));
-            }
-        }
     }
+
 }

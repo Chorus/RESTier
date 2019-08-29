@@ -11,23 +11,20 @@ namespace Microsoft.Restier.Core
     /// </summary>
     internal class PropertyBag
     {
-        private readonly IDictionary<string, object> properties =
-            new Dictionary<string, object>();
+        private readonly IDictionary<string, object> properties = new Dictionary<string, object>();
 
         /// <summary>
         /// Indicates if this object has a property.
         /// </summary>
-        /// <param name="name">
-        /// The name of a property.
-        /// </param>
+        /// <param name="name">The name of a property.</param>
         /// <returns>
         /// <c>true</c> if this object has the
         /// property; otherwise, <c>false</c>.
         /// </returns>
         public bool HasProperty(string name)
         {
-            Ensure.NotNull(name, "name");
-            return this.properties.ContainsKey(name);
+            Ensure.NotNull(name, nameof(name));
+            return properties.ContainsKey(name);
         }
 
         /// <summary>
@@ -44,8 +41,8 @@ namespace Microsoft.Restier.Core
         /// </returns>
         public T GetProperty<T>(string name)
         {
-            Ensure.NotNull(name, "name");
-            var value = this.GetProperty(name);
+            Ensure.NotNull(name, nameof(name));
+            var value = GetProperty(name);
             if (!(value is T))
             {
                 value = default(T);
@@ -57,17 +54,12 @@ namespace Microsoft.Restier.Core
         /// <summary>
         /// Gets a property.
         /// </summary>
-        /// <param name="name">
-        /// The name of a property.
-        /// </param>
-        /// <returns>
-        /// The value of the property.
-        /// </returns>
+        /// <param name="name">The name of a property.</param>
+        /// <returns>The value of the property.</returns>
         public object GetProperty(string name)
         {
-            Ensure.NotNull(name, "name");
-            object value = null;
-            this.properties.TryGetValue(name, out value);
+            Ensure.NotNull(name, nameof(name));
+            properties.TryGetValue(name, out var value);
             return value;
         }
 
@@ -82,8 +74,8 @@ namespace Microsoft.Restier.Core
         /// </param>
         public void SetProperty(string name, object value)
         {
-            Ensure.NotNull(name, "name");
-            this.properties[name] = value;
+            Ensure.NotNull(name, nameof(name));
+            properties[name] = value;
         }
 
         /// <summary>
@@ -94,8 +86,8 @@ namespace Microsoft.Restier.Core
         /// </param>
         public void RemoveProperty(string name)
         {
-            Ensure.NotNull(name, "name");
-            this.properties.Remove(name);
+            Ensure.NotNull(name, nameof(name));
+            properties.Remove(name);
         }
     }
 }

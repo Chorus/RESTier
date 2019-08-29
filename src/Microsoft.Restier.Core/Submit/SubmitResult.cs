@@ -22,8 +22,8 @@ namespace Microsoft.Restier.Core.Submit
         /// </param>
         public SubmitResult(Exception exception)
         {
-            Ensure.NotNull(exception, "exception");
-            this.Exception = exception;
+            Ensure.NotNull(exception, nameof(exception));
+            Exception = exception;
         }
 
         /// <summary>
@@ -49,7 +49,7 @@ namespace Microsoft.Restier.Core.Submit
         /// </param>
         public SubmitResult(ChangeSet completedChangeSet)
         {
-            Ensure.NotNull(completedChangeSet, "completedChangeSet");
+            Ensure.NotNull(completedChangeSet, nameof(completedChangeSet));
             this.completedChangeSet = completedChangeSet;
         }
 
@@ -62,16 +62,13 @@ namespace Microsoft.Restier.Core.Submit
         /// </remarks>
         public Exception Exception
         {
-            get
-            {
-                return this.exception;
-            }
+            get => exception;
 
             set
             {
-                Ensure.NotNull(value, "value");
-                this.exception = value;
-                this.completedChangeSet = null;
+                Ensure.NotNull(value, nameof(value));
+                exception = value;
+                completedChangeSet = null;
             }
         }
 
@@ -95,15 +92,12 @@ namespace Microsoft.Restier.Core.Submit
         /// </remarks>
         public ChangeSet CompletedChangeSet
         {
-            get
-            {
-                return this.completedChangeSet;
-            }
+            get => completedChangeSet;
 
             set
             {
-                Ensure.NotNull(value, "value");
-                this.completedChangeSet = value;
+                Ensure.NotNull(value, nameof(value));
+                completedChangeSet = value;
             }
         }
     }
