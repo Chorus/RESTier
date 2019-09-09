@@ -388,7 +388,9 @@ namespace Microsoft.Restier.AspNet
 
                 var result = await Api.SubmitAsync(changeSet, cancellationToken).ConfigureAwait(false);
 
-                if (result?.Exception != null && result.ExceptionItem != null)
+                if (result?.Exception is StatusCodeException scEx
+                    && scEx.StatusCode == HttpStatusCode.PreconditionFailed
+                    && result.ExceptionItem != null)
                 {
                     return CreateConflictODataResult(result.ExceptionItem);
                 }
