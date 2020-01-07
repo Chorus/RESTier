@@ -75,30 +75,20 @@ namespace Microsoft.Restier.Core
         /// <summary>
         /// Indicates if this object has a property.
         /// </summary>
-        /// <param name="api">
-        /// An API.
-        /// </param>
-        /// <param name="name">
-        /// The name of a property.
-        /// </param>
+        /// <param name="api">An API.</param>
+        /// <param name="name"> The name of a property.</param>
         /// <returns>
-        /// <c>true</c> if this object has the
-        /// property; otherwise, <c>false</c>.
+        /// <c>true</c> if this object has the property; otherwise, <c>false</c>.
         /// </returns>
         public static bool HasProperty(this ApiBase api, string name) => api.GetPropertyBag().HasProperty(name);
 
         /// <summary>
         /// Gets a property.
         /// </summary>
-        /// <typeparam name="T">
-        /// The type of the property.
+        /// <typeparam name="T">The type of the property.
         /// </typeparam>
-        /// <param name="api">
-        /// An API.
-        /// </param>
-        /// <param name="name">
-        /// The name of a property.
-        /// </param>
+        /// <param name="api">An API.</param>
+        /// <param name="name">The name of a property. </param>
         /// <returns>
         /// The value of the property.
         /// </returns>
@@ -107,12 +97,8 @@ namespace Microsoft.Restier.Core
         /// <summary>
         /// Gets a property.
         /// </summary>
-        /// <param name="api">
-        /// An API.
-        /// </param>
-        /// <param name="name">
-        /// The name of a property.
-        /// </param>
+        /// <param name="api">An API.</param>
+        /// <param name="name">The name of a property.</param>
         /// <returns>
         /// The value of the property.
         /// </returns>
@@ -121,26 +107,16 @@ namespace Microsoft.Restier.Core
         /// <summary>
         /// Sets a property.
         /// </summary>
-        /// <param name="api">
-        /// An API.
-        /// </param>
-        /// <param name="name">
-        /// The name of a property.
-        /// </param>
-        /// <param name="value">
-        /// A value for the property.
-        /// </param>
+        /// <param name="api">An API.</param>
+        /// <param name="name">The name of a property.</param>
+        /// <param name="value">A value for the property.</param>
         public static void SetProperty(this ApiBase api, string name, object value) => api.GetPropertyBag().SetProperty(name, value);
 
         /// <summary>
         /// Removes a property.
         /// </summary>
-        /// <param name="api">
-        /// An API.
-        /// </param>
-        /// <param name="name">
-        /// The name of a property.
-        /// </param>
+        /// <param name="api">An API. </param>
+        /// <param name="name">The name of a property.</param>
         public static void RemoveProperty(this ApiBase api, string name) => api.GetPropertyBag().RemoveProperty(name);
 
         #endregion
@@ -184,7 +160,7 @@ namespace Microsoft.Restier.Core
 
             try
             {
-                var buildContext = new ModelContext(api.ServiceProvider);
+                var buildContext = new ModelContext(api);
                 var model = await builder.GetModelAsync(buildContext, cancellationToken).ConfigureAwait(false);
                 source.SetResult(model);
                 return model;
@@ -394,10 +370,10 @@ namespace Microsoft.Restier.Core
             Ensure.NotNull(api, nameof(api));
             Ensure.NotNull(request, nameof(request));
 
-            var queryContext = new QueryContext(api.ServiceProvider, request);
+            var queryContext = new QueryContext(api, request);
             var model = await api.GetModelAsync(cancellationToken).ConfigureAwait(false);
             queryContext.Model = model;
-            return await DefaultQueryHandler.QueryAsync(queryContext, cancellationToken).ConfigureAwait(false);
+            return await api.QueryHandler.QueryAsync(queryContext, cancellationToken).ConfigureAwait(false);
         }
 
         #endregion
@@ -469,7 +445,7 @@ namespace Microsoft.Restier.Core
             var mapper = api.GetApiService<IModelMapper>();
             if (mapper != null)
             {
-                var modelContext = new ModelContext(api.ServiceProvider);
+                var modelContext = new ModelContext(api);
                 if (namespaceName == null)
                 {
                     mapper.TryGetRelevantType(modelContext, name, out elementType);

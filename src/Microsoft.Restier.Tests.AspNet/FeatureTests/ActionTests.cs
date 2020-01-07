@@ -15,15 +15,16 @@ namespace Microsoft.Restier.Tests.AspNet.FeatureTests
     public class ActionTests : RestierTestBase
     {
 
-        [Ignore]
+        //[Ignore]
         [TestMethod]
         public async Task ActionParameters_MissingParameter()
         {
-            var response = await RestierTestHelpers.ExecuteTestRequest<LibraryApi>(HttpMethod.Post, resource: "/CheckoutBook");
+            var response = await RestierTestHelpers.ExecuteTestRequest<LibraryApi, LibraryContext>(HttpMethod.Post, resource: "/CheckoutBook");
             var content = await response.Content.ReadAsStringAsync();
             TestContext.WriteLine(content);
             response.IsSuccessStatusCode.Should().BeFalse();
-            content.Should().Contain("ArgumentNullException");
+            content.Should().Contain("NullReferenceException");
+            //content.Should().Contain("ArgumentNullException");
         }
 
         [TestMethod]
@@ -38,7 +39,7 @@ namespace Microsoft.Restier.Tests.AspNet.FeatureTests
                 }
             };
 
-            var response = await RestierTestHelpers.ExecuteTestRequest<LibraryApi>(HttpMethod.Post, resource: "/CheckoutBook", acceptHeader: WebApiConstants.DefaultAcceptHeader, payload: bookPayload);
+            var response = await RestierTestHelpers.ExecuteTestRequest<LibraryApi, LibraryContext>(HttpMethod.Post, resource: "/CheckoutBook", acceptHeader: WebApiConstants.DefaultAcceptHeader, payload: bookPayload);
             var content = await response.Content.ReadAsStringAsync();
             TestContext.WriteLine(content);
             response.IsSuccessStatusCode.Should().BeFalse();
@@ -57,7 +58,7 @@ namespace Microsoft.Restier.Tests.AspNet.FeatureTests
                 }
             };
 
-            var response = await RestierTestHelpers.ExecuteTestRequest<LibraryApi>(HttpMethod.Post, resource: "/CheckoutBook", acceptHeader: WebApiConstants.DefaultAcceptHeader, payload: bookPayload);
+            var response = await RestierTestHelpers.ExecuteTestRequest<LibraryApi, LibraryContext>(HttpMethod.Post, resource: "/CheckoutBook", acceptHeader: WebApiConstants.DefaultAcceptHeader, payload: bookPayload);
             var content = await response.Content.ReadAsStringAsync();
             TestContext.WriteLine(content);
             response.IsSuccessStatusCode.Should().BeTrue();

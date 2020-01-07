@@ -8,7 +8,6 @@ using System.Linq.Expressions;
 using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.Extensions.DependencyInjection;
 using Microsoft.OData.Edm;
 using Microsoft.Restier.Core;
 using Microsoft.Restier.Core.Model;
@@ -34,24 +33,7 @@ namespace Microsoft.Restier.AspNet.Model
         private readonly IDictionary<IEdmEntityType, IEdmSingleton[]> singletonCache =
             new Dictionary<IEdmEntityType, IEdmSingleton[]>();
 
-        private RestierModelExtender(Type targetType) => this.targetType = targetType;
-
-        public static void ApplyTo(
-            IServiceCollection services,
-            Type targetType)
-        {
-            Ensure.NotNull(services, nameof(services));
-            Ensure.NotNull(targetType, nameof(targetType));
-
-            // The model builder must maintain a singleton life time, for holding states and being injected into
-            // some other services.
-            services.AddSingleton(new RestierModelExtender(targetType));
-
-            services.AddService<IModelBuilder, ModelBuilder>();
-            services.AddService<IModelMapper, ModelMapper>();
-            services.AddService<IQueryExpressionExpander, QueryExpressionExpander>();
-            services.AddService<IQueryExpressionSourcer, QueryExpressionSourcer>();
-        }
+        internal RestierModelExtender(Type targetType) => this.targetType = targetType;
 
         private static bool IsEntitySetProperty(PropertyInfo property)
         {
@@ -70,8 +52,7 @@ namespace Microsoft.Restier.AspNet.Model
                 return null;
             }
 
-            var dataSourceStubReference = context.ModelReference as DataSourceStubModelReference;
-            if (dataSourceStubReference == null)
+            if (!(context.ModelReference is DataSourceStubModelReference dataSourceStubReference))
             {
                 return null;
             }
@@ -88,7 +69,7 @@ namespace Microsoft.Restier.AspNet.Model
                 object target = null;
                 if (!entitySetProperty.GetMethod.IsStatic)
                 {
-                    target = context.QueryContext.GetApiService<ApiBase>();
+                    target = context.QueryContext.Api;
                     if (target == null ||
                         !targetType.IsInstanceOfType(target))
                     {
@@ -127,7 +108,7 @@ namespace Microsoft.Restier.AspNet.Model
                 object target = null;
                 if (!singletonProperty.GetMethod.IsStatic)
                 {
-                    target = context.QueryContext.GetApiService<ApiBase>();
+                    target = context.QueryContext.Api;
                     if (target == null ||
                         !targetType.IsInstanceOfType(target))
                     {

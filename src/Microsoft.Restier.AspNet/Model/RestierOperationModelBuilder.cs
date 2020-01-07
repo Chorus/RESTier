@@ -7,30 +7,28 @@ using System.Linq;
 using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.Extensions.DependencyInjection;
 using Microsoft.OData.Edm;
-using Microsoft.Restier.Core;
 using Microsoft.Restier.Core.Model;
 using EdmPathExpression = Microsoft.OData.Edm.EdmPathExpression;
 
 namespace Microsoft.Restier.AspNet.Model
 {
+
+    /// <summary>
+    /// 
+    /// </summary>
     internal class RestierOperationModelBuilder : IModelBuilder
     {
         private readonly Type targetType;
         private readonly ICollection<OperationMethodInfo> operationInfos = new List<OperationMethodInfo>();
 
-        private RestierOperationModelBuilder(Type targetType) => this.targetType = targetType;
-
-        private IModelBuilder InnerHandler { get; set; }
-
-        public static void ApplyTo(IServiceCollection services, Type targetType)
+        internal RestierOperationModelBuilder(Type targetType, IModelBuilder innerHandler)
         {
-            services.AddService<IModelBuilder>((sp, next) => new RestierOperationModelBuilder(targetType)
-            {
-                InnerHandler = next,
-            });
+            this.targetType = targetType;
+            this.InnerHandler = innerHandler;
         }
+
+        private IModelBuilder InnerHandler { get; }
 
         public async Task<IEdmModel> GetModelAsync(ModelContext context, CancellationToken cancellationToken)
         {
@@ -181,22 +179,11 @@ namespace Microsoft.Restier.AspNet.Model
 
                 if (operationMethodInfo.HasSideEffects)
                 {
-                    operation = new EdmAction(
-                        namespaceName,
-                        operationMethodInfo.Name,
-                        returnTypeReference,
-                        isBound,
-                        path);
+                    operation = new EdmAction(namespaceName, operationMethodInfo.Name, returnTypeReference, isBound, path);
                 }
                 else
                 {
-                    operation = new EdmFunction(
-                        namespaceName,
-                        operationMethodInfo.Name,
-                        returnTypeReference,
-                        isBound,
-                        path,
-                        operationMethodInfo.IsComposable);
+                    operation = new EdmFunction(namespaceName, operationMethodInfo.Name, returnTypeReference, isBound, path, operationMethodInfo.IsComposable);
                 }
 
                 BuildOperationParameters(operation, operationMethodInfo.Method, model);
@@ -238,7 +225,9 @@ namespace Microsoft.Restier.AspNet.Model
 
             public bool IsBound => OperationAttribute.IsBound;
 
-            public bool HasSideEffects => OperationAttribute.HasSideEffects;
+            public bool HasSideEffects => OperationAttribute.OperationType == OperationType.Action;
         }
+
     }
+
 }

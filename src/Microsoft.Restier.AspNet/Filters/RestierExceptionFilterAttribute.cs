@@ -48,12 +48,12 @@ namespace Microsoft.Restier.AspNet
             CancellationToken cancellationToken)
         {
             var config = actionExecutedContext.Request.GetConfiguration();
-            var useVerboseErros = config.IncludeErrorDetailPolicy == IncludeErrorDetailPolicy.Always ||
-                (actionExecutedContext.Request.RequestUri.Host.ToLower().Contains("localhost") && config.IncludeErrorDetailPolicy == IncludeErrorDetailPolicy.LocalOnly);
+            var useVerboseErrors = config.IncludeErrorDetailPolicy == IncludeErrorDetailPolicy.Always ||
+                (actionExecutedContext.Request.RequestUri.Host.ToUpperInvariant().Contains("LOCALHOST") && config.IncludeErrorDetailPolicy == IncludeErrorDetailPolicy.LocalOnly);
 
             foreach (var handler in Handlers)
             {
-                var result = await handler.Invoke(actionExecutedContext, useVerboseErros, cancellationToken).ConfigureAwait(false);
+                var result = await handler.Invoke(actionExecutedContext, useVerboseErrors, cancellationToken).ConfigureAwait(false);
 
                 if (result != null)
                 {
@@ -70,12 +70,28 @@ namespace Microsoft.Restier.AspNet
         {
             if (context.Exception is ChangeSetValidationException validationException)
             {
-                var exceptionResult = new NegotiatedContentResult<IEnumerable<ValidationResultDto>>(
-                    HttpStatusCode.BadRequest,
-                    validationException.ValidationResults.Select(r => new ValidationResultDto(r)),
+                var result = new
+                {
+                    error = new
+                    {
+                        code = "",
+                        innererror = new
+                        {
+                            message = validationException.Message,
+                            type = validationException.GetType().FullName
+                        },
+                        message = "Validaion failed for one or more objects.",
+                        validationentries = validationException.ValidationResults
+                    },
+                };
+
+                var exceptionResult = new NegotiatedContentResult<object>(
+                    (HttpStatusCode)422,
+                    result,
                     context.ActionContext.RequestContext.Configuration.Services.GetContentNegotiator(),
                     context.Request,
                     new MediaTypeFormatterCollection());
+
                 return await exceptionResult.ExecuteAsync(cancellationToken).ConfigureAwait(false);
             }
 
@@ -84,7 +100,7 @@ namespace Microsoft.Restier.AspNet
 
         private static Task<HttpResponseMessage> HandleCommonException(
             HttpActionExecutedContext context,
-            bool useVerboseErros,
+            bool useVerboseErrors,
             CancellationToken cancellationToken)
         {
             var exception = context.Exception.Demystify();
@@ -126,12 +142,12 @@ namespace Microsoft.Restier.AspNet
             if (changeSetProperty != null)
             {
                 changeSetProperty.Exceptions.Add(exception);
-                changeSetProperty.OnChangeSetCompleted(context.Request);
+                changeSetProperty.OnChangeSetCompleted();
             }
 
             if (code != HttpStatusCode.Unused)
             {
-                if (useVerboseErros)
+                if (useVerboseErrors)
                 {
                     return Task.FromResult(context.Request.CreateErrorResponse(code, exception));
                 }

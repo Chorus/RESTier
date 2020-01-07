@@ -43,7 +43,7 @@ namespace Microsoft.Restier.EntityFramework
         /// <summary>
         /// Gets the underlying DbContext for this API.
         /// </summary>
-        protected T DbContext
+        public T DbContext
         {
             get
             {
@@ -51,36 +51,6 @@ namespace Microsoft.Restier.EntityFramework
             }
         }
 
-
-        /// <summary>
-        /// Configures the API services for this API. Descendants may override this method to register
-        /// <typeparamref name="T"/> as a scoped service.
-        /// </summary>
-        /// <param name="apiType">
-        /// The Api type.
-        /// </param>
-        /// <param name="services">
-        /// The <see cref="IServiceCollection"/> with which to create all DI services.
-        /// </param>
-        /// <returns>
-        /// The <see cref="IServiceCollection"/>.
-        /// </returns>
-        //[CLSCompliant(false)]
-#pragma warning disable CA1000 // Do not declare static members on generic types
-        public static new IServiceCollection ConfigureApi(Type apiType, IServiceCollection services)
-#pragma warning restore CA1000 // Do not declare static members on generic types
-        {
-            // Add core and convention's services
-            services = services.AddCoreServices(apiType)
-                .AddConventionBasedServices(apiType);
-
-            // Add EF related services
-            services.AddEfProviderServices<T>();
-
-            // This is used to add the publisher's services
-            GetPublisherServiceCallback(apiType)(services);
-
-            return services;
-        }
     }
+
 }
